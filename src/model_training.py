@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import pickle 
 from sklearn.ensemble import RandomForestClassifier
+import yaml
 
 # Ensure the logs directory exists
 log_dir = 'logs'
@@ -26,6 +27,23 @@ file_handler.setFormatter(formatter)
 
 logger.addHandler(console_handler)
 logger.addHandler(file_handler)
+
+def load_params(params_path: str) -> dict:
+    """Load parameters from a YAML file."""
+    try:
+        with open(params_path, 'r') as file:
+            params = yaml.safe_load(file)
+        logger.info(f"Parameters loaded successfully from {params_path}")
+        return params
+    except FileNotFoundError as e:
+        logger.error(f"File not found: {e}")
+        raise
+    except yaml.YAMLError as e:
+        logger.error(f"Error parsing YAML file: {e}")
+        raise
+    except Exception as e:
+        logger.error(f"Error loading parameters: {e}")
+        raise
 
 def load_data(file_path: str) -> pd.DataFrame:
     """Load data from a CSV file."""
@@ -91,10 +109,14 @@ def main():
         x_train = train_data.iloc[:, :-1].values
         y_train = train_data.iloc[:, -1].values
         # Define model hyperparameters
-        params = {
-            'n_estimators': 25,
-            'random_state': 2
-        }
+        # params = {
+        #     'n_estimators': 25,
+        #     'random_state': 2
+        # }
+
+        params = load_params(params_path='params.yaml')['model_training']
+        # params['n_estimators'] = params['model_training']['n_estimators']
+        # params['random_state'] = params['model_training']['random_state']
 
         clf = train_model(x_train, y_train, params)
         # Save the trained model
