@@ -5,6 +5,8 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, roc_a
 import pickle
 import json
 import numpy as np
+import yaml
+from dvclive import Live
 
 # Ensure the logs directory exists
 log_dir = 'logs'
@@ -27,6 +29,23 @@ file_handler.setFormatter(formatter)
 
 logger.addHandler(console_handler)
 logger.addHandler(file_handler)
+
+def load_params(params_path: str) -> dict:
+    """Load parameters from a YAML file."""
+    try:
+        with open(params_path, 'r') as file:
+            params = yaml.safe_load(file)
+        logger.info(f"Parameters loaded successfully from {params_path}")
+        return params
+    except FileNotFoundError as e:
+        logger.error(f"File not found: {e}")
+        raise
+    except yaml.YAMLError as e:
+        logger.error(f"Error parsing YAML file: {e}")
+        raise
+    except Exception as e:
+        logger.error(f"Error loading parameters: {e}")
+        raise
 
 def load_model(file_path: str):
     """Load data from a CSV file."""
@@ -101,6 +120,8 @@ def save_metrics(metrics: dict, file_path: str) -> None:
 def main():
     """Main function to load, evaluate, and save the model metrics."""
     try:
+        params = load_params(params_path='params.yaml')
+
         # Load the test data
         test_data = load_data('data/processed/test_tfidf.csv')
         x_test = test_data.iloc[:, :-1].values
@@ -111,7 +132,14 @@ def main():
 
         # Evaluate the model
         metrics = evaluate_model(clf, x_test, y_test)
+        
+        # Experiment tracking with dvclive
+        with Live(save_dvc_exp=True) as live:
+            live.log_metric('accuracy', accuracy_score(y_test,y_test))
+            live.log_metric('precision', precision_score(y_test,y_test))
+            live.log_metric('recall', recall_score(y_test,y_test))
 
+            live.log_params(params)
         # Save the evaluation metrics
         save_metrics(metrics, 'reports/metrics.json')
 

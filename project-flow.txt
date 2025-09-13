@@ -18,4 +18,27 @@ Setting up the DVC pipeline with params
 10. Do "dvc repro" again to test the pipeline along with the param
 11. Now git add, commit and push
 
+Experiments with DVC
+
+12. pip install dvclive
+13. Add dvclive code block
+
+i) import dvclive and yaml
+from dvclive import live
+import yaml
+ii) Add the load_params function and initiate "params" var in main
+iii) Add below code block to the main
+with Live(save_dvc_exp=True) as live
+    live.log_metric('accuracy', accuracy_score(y_test,y_test))
+    live.log_metric('precision', precision_score(y_test,y_test))
+    live.log_metric('recall', recall_score(y_test,y_test))
+
+    live.load_params(params)
+
+14. Do "dvc exp run", It will create a new dvc.yml(if already not there) and directory(Each run will be considered 
+    as an experiments)
+15. Do "dvc exp show" on terminal to see the experiments or use extension in VSCode(Install DVC extension)
+16. Do "dvc exp remove <exp-name>" to remove exp (Optional) | "dvc exp apply <exp-name>" to reproduce previous exp
+17. Change params, re-run code(Produce new experiments)
+18. Now git add, commit. push 
 
