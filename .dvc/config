@@ -1,0 +1,4 @@
+[core]
+    remote = mys3dvc
+['remote "mys3dvc"']
+    url = s3://dvctest-bucket1232
